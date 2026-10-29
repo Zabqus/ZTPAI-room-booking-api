@@ -1,15 +1,12 @@
 const { ValidationError } = require('../errors/errors');
 
-// Zamienia issue z Zoda na format { location, field, message }
 function toDetails(location, issue) {
-  // Nieznane pola: Zod zgłasza jeden issue z listą kluczy - rozbijamy go na osobne wpisy
   if (issue.code === 'unrecognized_keys') {
     return issue.keys.map((key) => ({ location, field: key, message: 'Unknown field' }));
   }
   return [{ location, field: issue.path.join('.'), message: issue.message }];
 }
 
-// Uniwersalny middleware: validate({ params, query, body }) - zbiera wszystkie błędy naraz
 function validate(schemas) {
   return (req, res, next) => {
     const validated = {};

@@ -9,7 +9,6 @@ const STATUS = {
   CANCELLED: 'CANCELLED',
 };
 
-// State machine: dozwolone przejścia statusów zapisane jako dane
 const ALLOWED_TRANSITIONS = {
   [STATUS.CONFIRMED]: [STATUS.CANCELLED],
   [STATUS.CANCELLED]: [],
@@ -19,7 +18,6 @@ function canTransition(from, to) {
   return (ALLOWED_TRANSITIONS[from] ?? []).includes(to);
 }
 
-// Przedziały półotwarte [start, end): nakładają się, gdy A.start < B.end AND B.start < A.end
 function overlaps(a, b) {
   return a.start < b.end && b.start < a.end;
 }
@@ -55,7 +53,6 @@ function createReservationsService({ reservationsRepository, roomsRepository, no
     getReservation,
 
     async createReservation({ roomId, reservedBy, participants, startTime, endTime }) {
-      // Porównania na timestampach - "10:00+01:00" i "09:00Z" to ten sam moment
       const start = new Date(startTime).getTime();
       const end = new Date(endTime).getTime();
 
@@ -98,7 +95,6 @@ function createReservationsService({ reservationsRepository, roomsRepository, no
       const reservation = await getReservation(id);
       const target = STATUS.CANCELLED;
 
-      // Idempotencja: ponowne anulowanie zwraca rezerwację bez zmian
       if (reservation.status === target) return reservation;
 
       if (!canTransition(reservation.status, target)) {

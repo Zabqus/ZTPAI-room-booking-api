@@ -1,11 +1,9 @@
 const { AppError, NotFoundError } = require('../errors/errors');
 
-// Nieistniejąca ścieżka -> 404 w formacie JSON
 function notFoundHandler(req, res, next) {
   next(new NotFoundError(`Route ${req.method} ${req.originalUrl} not found`, 'ROUTE_NOT_FOUND'));
 }
 
-// Jedyne miejsce, które zamienia błędy na odpowiedzi HTTP
 function errorHandler(err, req, res, next) {
   const requestId = req.requestId;
 

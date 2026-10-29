@@ -1,6 +1,4 @@
-// Repozytorium rezerwacji w pamięci - jedyne miejsce, gdzie istnieje tablica z rezerwacjami
 function createReservationsRepository() {
-  // Seed: rezerwacja, która była poprawna przy tworzeniu, ale już się rozpoczęła
   const reservations = [
     {
       id: 1,
