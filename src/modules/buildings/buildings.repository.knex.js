@@ -10,8 +10,13 @@ function toBuilding(row) {
 function createBuildingsRepository(db) {
   return {
     async findAll() {
-      const rows = await db('buildings').select('*').orderBy('id');
-      return rows.map(toBuilding);
+      const rows = await db('buildings')
+        .leftJoin('rooms', 'rooms.building_id', 'buildings.id')
+        .select('buildings.*')
+        .count('rooms.id as rooms_count')
+        .groupBy('buildings.id')
+        .orderBy('buildings.id');
+      return rows.map((row) => ({ ...toBuilding(row), roomsCount: Number(row.rooms_count) }));
     },
 
     async findById(id) {

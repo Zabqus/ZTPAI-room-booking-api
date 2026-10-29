@@ -13,7 +13,7 @@ const { createReservationsRouter } = require('./modules/reservations/reservation
 
 
 function createApp({ buildingsRepository, roomsRepository, reservationsRepository, now = () => new Date() }) {
-  const buildingsService = createBuildingsService({ buildingsRepository });
+  const buildingsService = createBuildingsService({ buildingsRepository, roomsRepository });
   const roomsService = createRoomsService({ roomsRepository, buildingsRepository });
   const reservationsService = createReservationsService({ reservationsRepository, roomsRepository, now });
 

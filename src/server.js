@@ -13,11 +13,10 @@ const PORT = process.env.PORT || 3000;
 
 function createRepositories() {
   if (process.env.REPOSITORY === 'memory') {
-    return {
-      buildingsRepository: memoryBuildings.createBuildingsRepository(),
-      roomsRepository: memoryRooms.createRoomsRepository(),
-      reservationsRepository: memoryReservations.createReservationsRepository(),
-    };
+    const buildingsRepository = memoryBuildings.createBuildingsRepository(() => roomsRepository.findAll());
+    const roomsRepository = memoryRooms.createRoomsRepository(buildingsRepository);
+    const reservationsRepository = memoryReservations.createReservationsRepository(roomsRepository);
+    return { buildingsRepository, roomsRepository, reservationsRepository };
   }
 
   const db = knex(knexConfig);

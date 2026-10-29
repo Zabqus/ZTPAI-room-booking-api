@@ -28,36 +28,53 @@ function toReservation(row) {
     status: row.status,
     cancelledAt: row.cancelled_at,
     createdAt: row.created_at,
+    room: {
+      id: row.room_id,
+      name: row.room_name,
+      building: { id: row.building_id, name: row.building_name },
+    },
   };
 }
 
 function createReservationsRepository(db) {
+  function reservationsWithRoom() {
+    return db('reservations')
+      .join('rooms', 'rooms.id', 'reservations.room_id')
+      .join('buildings', 'buildings.id', 'rooms.building_id')
+      .select('reservations.*', 'rooms.name as room_name', 'rooms.building_id', 'buildings.name as building_name')
+      .orderBy('reservations.id');
+  }
+
+  async function findById(id) {
+    const row = await reservationsWithRoom().where('reservations.id', id).first();
+    return row ? toReservation(row) : null;
+  }
+
   return {
     async findAll({ roomId } = {}) {
-      const query = db('reservations').select('*').orderBy('id');
-      if (roomId !== undefined) query.where({ room_id: roomId });
+      const query = reservationsWithRoom();
+      if (roomId !== undefined) query.where('reservations.room_id', roomId);
       const rows = await query;
       return rows.map(toReservation);
     },
 
-    async findById(id) {
-      const row = await db('reservations').where({ id }).first();
-      return row ? toReservation(row) : null;
-    },
+    findById,
 
     async findConfirmedByRoomId(roomId) {
-      const rows = await db('reservations').where({ room_id: roomId, status: 'CONFIRMED' });
+      const rows = await reservationsWithRoom()
+        .where('reservations.room_id', roomId)
+        .where('reservations.status', 'CONFIRMED');
       return rows.map(toReservation);
     },
 
     async create(data) {
-      const [row] = await db('reservations').insert(toRow(data)).returning('*');
-      return toReservation(row);
+      const [row] = await db('reservations').insert(toRow(data)).returning('id');
+      return findById(row.id);
     },
 
     async update(id, changes) {
-      const [row] = await db('reservations').where({ id }).update(toRow(changes)).returning('*');
-      return row ? toReservation(row) : null;
+      const [row] = await db('reservations').where({ id }).update(toRow(changes)).returning('id');
+      return row ? findById(row.id) : null;
     },
   };
 }
