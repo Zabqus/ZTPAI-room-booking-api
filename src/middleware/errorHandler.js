@@ -20,6 +20,13 @@ function errorHandler(err, req, res, next) {
     });
   }
 
+  // 23505 - naruszenie UNIQUE w PostgreSQL; szczegóły bazy nie trafiają do klienta
+  if (err.code === '23505') {
+    return res.status(409).json({
+      error: { code: 'ALREADY_EXISTS', message: 'Resource already exists', requestId },
+    });
+  }
+
   // Nieoczekiwany błąd: stack trace tylko w logach, klient dostaje ogólny komunikat
   console.error(`[${requestId}] Unhandled error:`, err.stack);
   res.status(500).json({
