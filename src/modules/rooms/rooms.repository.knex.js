@@ -30,6 +30,11 @@ function createRoomsRepository(db) {
 
     findById,
 
+    async findByIdForUpdate(id) {
+      const row = await roomsWithBuilding().where('rooms.id', id).forUpdate('rooms').first();
+      return row ? toRoom(row) : null;
+    },
+
     async findByBuildingId(buildingId) {
       const rows = await roomsWithBuilding().where('rooms.building_id', buildingId);
       return rows.map(toRoom);

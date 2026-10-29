@@ -13,15 +13,19 @@ function createRoomsRepository(buildingsRepository) {
     return { ...room, building: { id: building.id, name: building.name } };
   }
 
+  async function findById(id) {
+    const room = rooms.find((r) => r.id === id);
+    return room ? withBuilding(room) : null;
+  }
+
   return {
     async findAll() {
       return Promise.all(rooms.map(withBuilding));
     },
 
-    async findById(id) {
-      const room = rooms.find((r) => r.id === id);
-      return room ? withBuilding(room) : null;
-    },
+    findById,
+
+    findByIdForUpdate: findById,
 
     async findByBuildingId(buildingId) {
       return Promise.all(rooms.filter((r) => r.buildingId === buildingId).map(withBuilding));

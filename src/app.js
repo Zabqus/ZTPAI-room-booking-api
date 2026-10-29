@@ -12,10 +12,16 @@ const { createReservationsController } = require('./modules/reservations/reserva
 const { createReservationsRouter } = require('./modules/reservations/reservations.routes');
 
 
-function createApp({ buildingsRepository, roomsRepository, reservationsRepository, now = () => new Date() }) {
+function createApp({
+  buildingsRepository,
+  roomsRepository,
+  reservationsRepository,
+  runInTransaction,
+  now = () => new Date(),
+}) {
   const buildingsService = createBuildingsService({ buildingsRepository, roomsRepository });
   const roomsService = createRoomsService({ roomsRepository, buildingsRepository });
-  const reservationsService = createReservationsService({ reservationsRepository, roomsRepository, now });
+  const reservationsService = createReservationsService({ reservationsRepository, runInTransaction, now });
 
   const app = express();
 

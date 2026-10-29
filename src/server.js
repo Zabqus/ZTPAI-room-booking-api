@@ -11,19 +11,27 @@ const knexReservations = require('./modules/reservations/reservations.repository
 
 const PORT = process.env.PORT || 3000;
 
+function createKnexRepositories(db) {
+  return {
+    buildingsRepository: knexBuildings.createBuildingsRepository(db),
+    roomsRepository: knexRooms.createRoomsRepository(db),
+    reservationsRepository: knexReservations.createReservationsRepository(db),
+  };
+}
+
 function createRepositories() {
   if (process.env.REPOSITORY === 'memory') {
     const buildingsRepository = memoryBuildings.createBuildingsRepository(() => roomsRepository.findAll());
     const roomsRepository = memoryRooms.createRoomsRepository(buildingsRepository);
     const reservationsRepository = memoryReservations.createReservationsRepository(roomsRepository);
-    return { buildingsRepository, roomsRepository, reservationsRepository };
+    const repositories = { buildingsRepository, roomsRepository, reservationsRepository };
+    return { ...repositories, runInTransaction: (callback) => callback(repositories) };
   }
 
   const db = knex(knexConfig);
   return {
-    buildingsRepository: knexBuildings.createBuildingsRepository(db),
-    roomsRepository: knexRooms.createRoomsRepository(db),
-    reservationsRepository: knexReservations.createReservationsRepository(db),
+    ...createKnexRepositories(db),
+    runInTransaction: (callback) => db.transaction((trx) => callback(createKnexRepositories(trx))),
   };
 }
 

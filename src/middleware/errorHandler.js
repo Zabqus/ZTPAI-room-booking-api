@@ -27,6 +27,13 @@ function errorHandler(err, req, res, next) {
     });
   }
 
+  // 23P01 - naruszenie exclusion constraint (nakładające się rezerwacje CONFIRMED)
+  if (err.code === '23P01') {
+    return res.status(409).json({
+      error: { code: 'ROOM_ALREADY_BOOKED', message: 'Room is already booked in this time range', requestId },
+    });
+  }
+
   // Nieoczekiwany błąd: stack trace tylko w logach, klient dostaje ogólny komunikat
   console.error(`[${requestId}] Unhandled error:`, err.stack);
   res.status(500).json({
