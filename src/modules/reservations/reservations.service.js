@@ -46,8 +46,8 @@ function createReservationsService({ reservationsRepository, roomsRepository, no
   }
 
   return {
-    async listReservations({ roomId } = {}) {
-      return reservationsRepository.findAll({ roomId });
+    async listReservations(filters) {
+      return reservationsRepository.findAll(filters);
     },
 
     getReservation,

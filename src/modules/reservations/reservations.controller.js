@@ -4,8 +4,12 @@ const { toReservationResponse } = require('./reservations.mapper');
 function createReservationsController({ reservationsService }) {
   return {
     async list(req, res) {
-      const reservations = await reservationsService.listReservations(req.validated.query);
-      res.json(reservations.map(toReservationResponse));
+      const { page, limit } = req.validated.query;
+      const { reservations, total } = await reservationsService.listReservations(req.validated.query);
+      res.json({
+        data: reservations.map(toReservationResponse),
+        meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      });
     },
 
     async getById(req, res) {

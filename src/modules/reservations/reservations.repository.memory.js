@@ -21,9 +21,22 @@ function createReservationsRepository(roomsRepository) {
   }
 
   return {
-    async findAll({ roomId } = {}) {
-      const result = roomId === undefined ? reservations : reservations.filter((r) => r.roomId === roomId);
-      return Promise.all(result.map(withRoom));
+    async findAll({ roomId, buildingId, status, from, to, page, limit, sort }) {
+      const all = await Promise.all(reservations.map(withRoom));
+      const filtered = all.filter(
+        (r) =>
+          (roomId === undefined || r.roomId === roomId) &&
+          (buildingId === undefined || r.room.building.id === buildingId) &&
+          (status === undefined || r.status === status) &&
+          (from === undefined || r.endTime > new Date(from)) &&
+          (to === undefined || r.startTime < new Date(to)),
+      );
+
+      const field = sort.replace('-', '');
+      const direction = sort.startsWith('-') ? -1 : 1;
+      filtered.sort((a, b) => (a[field] - b[field]) * direction || a.id - b.id);
+
+      return { reservations: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
     },
 
     async findById(id) {

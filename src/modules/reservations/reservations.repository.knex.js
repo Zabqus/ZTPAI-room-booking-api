@@ -9,6 +9,19 @@ const COLUMNS = {
   createdAt: 'created_at',
 };
 
+const SORT_COLUMNS = {
+  startTime: 'reservations.start_time',
+  createdAt: 'reservations.created_at',
+  participants: 'reservations.participants',
+};
+
+const SELECT_COLUMNS = [
+  'reservations.*',
+  'rooms.name as room_name',
+  'rooms.building_id',
+  'buildings.name as building_name',
+];
+
 function toRow(data) {
   const row = {};
   for (const [field, column] of Object.entries(COLUMNS)) {
@@ -40,28 +53,41 @@ function createReservationsRepository(db) {
   function reservationsWithRoom() {
     return db('reservations')
       .join('rooms', 'rooms.id', 'reservations.room_id')
-      .join('buildings', 'buildings.id', 'rooms.building_id')
-      .select('reservations.*', 'rooms.name as room_name', 'rooms.building_id', 'buildings.name as building_name')
-      .orderBy('reservations.id');
+      .join('buildings', 'buildings.id', 'rooms.building_id');
   }
 
   async function findById(id) {
-    const row = await reservationsWithRoom().where('reservations.id', id).first();
+    const row = await reservationsWithRoom().select(SELECT_COLUMNS).where('reservations.id', id).first();
     return row ? toReservation(row) : null;
   }
 
   return {
-    async findAll({ roomId } = {}) {
+    async findAll({ roomId, buildingId, status, from, to, page, limit, sort }) {
       const query = reservationsWithRoom();
       if (roomId !== undefined) query.where('reservations.room_id', roomId);
-      const rows = await query;
-      return rows.map(toReservation);
+      if (buildingId !== undefined) query.where('rooms.building_id', buildingId);
+      if (status !== undefined) query.where('reservations.status', status);
+      if (from !== undefined) query.where('reservations.end_time', '>', from);
+      if (to !== undefined) query.where('reservations.start_time', '<', to);
+
+      const [{ count }] = await query.clone().count('reservations.id as count');
+
+      const direction = sort.startsWith('-') ? 'desc' : 'asc';
+      const rows = await query
+        .select(SELECT_COLUMNS)
+        .orderBy(SORT_COLUMNS[sort.replace('-', '')], direction)
+        .orderBy('reservations.id', 'asc')
+        .limit(limit)
+        .offset((page - 1) * limit);
+
+      return { reservations: rows.map(toReservation), total: Number(count) };
     },
 
     findById,
 
     async findConfirmedByRoomId(roomId) {
       const rows = await reservationsWithRoom()
+        .select(SELECT_COLUMNS)
         .where('reservations.room_id', roomId)
         .where('reservations.status', 'CONFIRMED');
       return rows.map(toReservation);
