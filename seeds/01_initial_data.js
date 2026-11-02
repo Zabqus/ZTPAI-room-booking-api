@@ -1,5 +1,14 @@
+const bcrypt = require('bcryptjs');
+
 exports.seed = async function (knex) {
-  await knex.raw('TRUNCATE TABLE reservations, rooms, buildings RESTART IDENTITY CASCADE');
+  await knex.raw('TRUNCATE TABLE reservations, rooms, buildings, users RESTART IDENTITY CASCADE');
+
+  await knex('users').insert({
+    email: 'admin@example.com',
+    password_hash: await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD, 12),
+    role: 'ADMIN',
+    created_at: '2026-10-01T08:00:00Z',
+  });
 
   await knex('buildings').insert([
     { name: 'Budynek A', address: 'ul. Warszawska 24, Kraków', created_at: '2026-10-01T08:00:00Z' },
