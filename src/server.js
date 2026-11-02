@@ -23,6 +23,8 @@ const db = knex(knexConfig);
 const app = createApp({
   ...createRepositories(db),
   runInTransaction: (callback) => db.transaction((trx) => callback(createRepositories(trx))),
+  jwtSecret: process.env.JWT_SECRET,
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

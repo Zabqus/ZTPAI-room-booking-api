@@ -5,4 +5,9 @@ const registerBodySchema = z.strictObject({
   password: z.string().min(10).max(72),
 });
 
-module.exports = { registerBodySchema };
+const loginBodySchema = z.strictObject({
+  email: z.email().toLowerCase(),
+  password: z.string().min(1),
+});
+
+module.exports = { registerBodySchema, loginBodySchema };
