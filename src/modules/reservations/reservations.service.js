@@ -52,7 +52,7 @@ function createReservationsService({ reservationsRepository, runInTransaction, n
 
     getReservation,
 
-    async createReservation({ roomId, reservedBy, participants, startTime, endTime }) {
+    async createReservation({ roomId, participants, startTime, endTime }, currentUser) {
       const start = new Date(startTime).getTime();
       const end = new Date(endTime).getTime();
 
@@ -82,7 +82,7 @@ function createReservationsService({ reservationsRepository, runInTransaction, n
 
         return reservationsRepository.create({
           roomId,
-          reservedBy,
+          userId: currentUser.id,
           participants,
           startTime: new Date(start),
           endTime: new Date(end),

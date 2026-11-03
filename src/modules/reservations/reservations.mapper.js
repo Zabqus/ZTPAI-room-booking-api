@@ -10,7 +10,7 @@ function toReservationResponse(reservation) {
       name: reservation.room.name,
       building: { id: reservation.room.building.id, name: reservation.room.building.name },
     },
-    reservedBy: reservation.reservedBy,
+    user: { id: reservation.user.id, email: reservation.user.email },
     participants: reservation.participants,
     startTime: toIsoOrNull(reservation.startTime),
     endTime: toIsoOrNull(reservation.endTime),

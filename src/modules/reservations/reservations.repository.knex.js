@@ -1,6 +1,6 @@
 const COLUMNS = {
   roomId: 'room_id',
-  reservedBy: 'reserved_by',
+  userId: 'user_id',
   participants: 'participants',
   startTime: 'start_time',
   endTime: 'end_time',
@@ -20,6 +20,7 @@ const SELECT_COLUMNS = [
   'rooms.name as room_name',
   'rooms.building_id',
   'buildings.name as building_name',
+  'users.email as user_email',
 ];
 
 function toRow(data) {
@@ -34,7 +35,8 @@ function toReservation(row) {
   return {
     id: row.id,
     roomId: row.room_id,
-    reservedBy: row.reserved_by,
+    userId: row.user_id,
+    user: { id: row.user_id, email: row.user_email },
     participants: row.participants,
     startTime: row.start_time,
     endTime: row.end_time,
@@ -53,7 +55,8 @@ function createReservationsRepository(db) {
   function reservationsWithRoom() {
     return db('reservations')
       .join('rooms', 'rooms.id', 'reservations.room_id')
-      .join('buildings', 'buildings.id', 'rooms.building_id');
+      .join('buildings', 'buildings.id', 'rooms.building_id')
+      .join('users', 'users.id', 'reservations.user_id');
   }
 
   async function findById(id) {

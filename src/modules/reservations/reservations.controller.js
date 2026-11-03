@@ -18,7 +18,7 @@ function createReservationsController({ reservationsService }) {
     },
 
     async create(req, res) {
-      const reservation = await reservationsService.createReservation(req.validated.body);
+      const reservation = await reservationsService.createReservation(req.validated.body, req.user);
       res
         .status(201)
         .location(`/api/reservations/${reservation.id}`)

@@ -11,7 +11,8 @@ function createAuthenticate({ jwtSecret }) {
     try {
       const payload = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] });
       req.user = { id: Number(payload.sub), role: payload.role };
-    } catch {
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') throw new UnauthorizedError('Token expired', 'TOKEN_EXPIRED');
       throw new UnauthorizedError('Invalid token', 'INVALID_TOKEN');
     }
 

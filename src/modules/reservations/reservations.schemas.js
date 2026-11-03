@@ -28,7 +28,6 @@ const listReservationsQuerySchema = z
 
 const createReservationBodySchema = z.strictObject({
   roomId: z.number().int().positive(),
-  reservedBy: z.string().trim().min(3).max(100),
   participants: z.number().int().positive(),
   startTime: isoDateTimeWithOffset,
   endTime: isoDateTimeWithOffset,

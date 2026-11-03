@@ -40,18 +40,15 @@ function createApp({
   app.use('/api/auth', createAuthRouter({ authController: createAuthController({ authService }), authenticate }));
   app.use(
     '/api/buildings',
+    authenticate,
     createBuildingsRouter({ buildingsController: createBuildingsController({ buildingsService }) }),
   );
-  app.use('/api/rooms', createRoomsRouter({ roomsController: createRoomsController({ roomsService }) }));
+  app.use('/api/rooms', authenticate, createRoomsRouter({ roomsController: createRoomsController({ roomsService }) }));
   app.use(
     '/api/reservations',
+    authenticate,
     createReservationsRouter({ reservationsController: createReservationsController({ reservationsService }) }),
   );
-
-
-  app.get('/api/debug/crash', () => {
-    throw new Error('boom');
-  });
 
   app.use(notFoundHandler);
   app.use(errorHandler);
