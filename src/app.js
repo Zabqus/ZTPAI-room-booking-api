@@ -1,4 +1,6 @@
 const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const { openapiSpec } = require('./docs/openapi');
 const { requestLogger } = require('./middleware/requestLogger');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 const { createAuthenticate } = require('./middleware/authenticate');
@@ -37,6 +39,7 @@ function createApp({
   app.use(requestLogger);
   app.use(express.json());
 
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
   app.use('/api/auth', createAuthRouter({ authController: createAuthController({ authService }), authenticate }));
   app.use(
     '/api/buildings',

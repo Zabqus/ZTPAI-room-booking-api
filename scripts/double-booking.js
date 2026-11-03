@@ -1,8 +1,8 @@
-require('dotenv').config();
+const config = require('../src/config');
 const knex = require('knex');
 const knexConfig = require('../knexfile');
 
-const API_URL = `http://localhost:${process.env.PORT || 3000}/api/reservations`;
+const API_URL = `http://localhost:${config.PORT}/api/reservations`;
 const REQUESTS = 10;
 const ROOM_ID = 1;
 const START_TIME = '2026-12-15T10:00:00.000Z';

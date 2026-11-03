@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
+const config = require('../src/config');
 
 const randomPasswordHash = () => bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12);
 
@@ -8,7 +9,7 @@ exports.seed = async function (knex) {
 
   await knex('users').insert({
     email: 'admin@example.com',
-    password_hash: await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD, 12),
+    password_hash: await bcrypt.hash(config.SEED_ADMIN_PASSWORD, 12),
     role: 'ADMIN',
     created_at: '2026-10-01T08:00:00Z',
   });
