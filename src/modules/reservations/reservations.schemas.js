@@ -12,6 +12,7 @@ const listReservationsQuerySchema = z
   .object({
     roomId: positiveIntFromString.optional(),
     buildingId: positiveIntFromString.optional(),
+    userId: positiveIntFromString.optional(),
     status: z.enum(['CONFIRMED', 'CANCELLED']).optional(),
     from: isoDateTimeWithOffset.optional(),
     to: isoDateTimeWithOffset.optional(),

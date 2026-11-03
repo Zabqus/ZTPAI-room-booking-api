@@ -21,6 +21,12 @@ class UnauthorizedError extends AppError {
   }
 }
 
+class ForbiddenError extends AppError {
+  constructor(message = 'Forbidden', code = 'FORBIDDEN') {
+    super(403, code, message);
+  }
+}
+
 class NotFoundError extends AppError {
   constructor(message = 'Resource not found', code = 'NOT_FOUND') {
     super(404, code, message);
@@ -33,4 +39,4 @@ class ConflictError extends AppError {
   }
 }
 
-module.exports = { AppError, ValidationError, UnauthorizedError, NotFoundError, ConflictError };
+module.exports = { AppError, ValidationError, UnauthorizedError, ForbiddenError, NotFoundError, ConflictError };

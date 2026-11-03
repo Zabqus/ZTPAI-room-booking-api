@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const { validate } = require('../../middleware/validate');
+const { authorize } = require('../../middleware/authorize');
 const { buildingParamsSchema, createBuildingBodySchema } = require('./buildings.schemas');
 
 function createBuildingsRouter({ buildingsController }) {
@@ -8,7 +9,7 @@ function createBuildingsRouter({ buildingsController }) {
   router.get('/', buildingsController.list);
   router.get('/:id', validate({ params: buildingParamsSchema }), buildingsController.getById);
   router.get('/:id/rooms', validate({ params: buildingParamsSchema }), buildingsController.listRooms);
-  router.post('/', validate({ body: createBuildingBodySchema }), buildingsController.create);
+  router.post('/', authorize('ADMIN'), validate({ body: createBuildingBodySchema }), buildingsController.create);
 
   return router;
 }

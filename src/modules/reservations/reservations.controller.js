@@ -5,7 +5,7 @@ function createReservationsController({ reservationsService }) {
   return {
     async list(req, res) {
       const { page, limit } = req.validated.query;
-      const { reservations, total } = await reservationsService.listReservations(req.validated.query);
+      const { reservations, total } = await reservationsService.listReservations(req.validated.query, req.user);
       res.json({
         data: reservations.map(toReservationResponse),
         meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
@@ -13,7 +13,7 @@ function createReservationsController({ reservationsService }) {
     },
 
     async getById(req, res) {
-      const reservation = await reservationsService.getReservation(req.validated.params.id);
+      const reservation = await reservationsService.getReservation(req.validated.params.id, req.user);
       res.json(toReservationResponse(reservation));
     },
 
@@ -26,7 +26,7 @@ function createReservationsController({ reservationsService }) {
     },
 
     async cancel(req, res) {
-      const reservation = await reservationsService.cancelReservation(req.validated.params.id);
+      const reservation = await reservationsService.cancelReservation(req.validated.params.id, req.user);
       res.json(toReservationResponse(reservation));
     },
   };

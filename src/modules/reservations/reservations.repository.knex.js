@@ -65,10 +65,11 @@ function createReservationsRepository(db) {
   }
 
   return {
-    async findAll({ roomId, buildingId, status, from, to, page, limit, sort }) {
+    async findAll({ roomId, buildingId, userId, status, from, to, page, limit, sort }) {
       const query = reservationsWithRoom();
       if (roomId !== undefined) query.where('reservations.room_id', roomId);
       if (buildingId !== undefined) query.where('rooms.building_id', buildingId);
+      if (userId !== undefined) query.where('reservations.user_id', userId);
       if (status !== undefined) query.where('reservations.status', status);
       if (from !== undefined) query.where('reservations.end_time', '>', from);
       if (to !== undefined) query.where('reservations.start_time', '<', to);
