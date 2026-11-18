@@ -5,7 +5,7 @@ const config = require('../src/config');
 const randomPasswordHash = () => bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12);
 
 exports.seed = async function (knex) {
-  await knex.raw('TRUNCATE TABLE reservations, rooms, buildings, users RESTART IDENTITY CASCADE');
+  await knex.raw('TRUNCATE TABLE audit_log, reservations, rooms, buildings, users RESTART IDENTITY CASCADE');
 
   await knex('users').insert({
     email: 'admin@example.com',

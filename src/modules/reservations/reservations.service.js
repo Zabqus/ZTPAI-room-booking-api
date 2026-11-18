@@ -23,7 +23,7 @@ function overlaps(a, b) {
 }
 
 // Logika rezerwacji - repositories i zegar wstrzykiwane jako parametry
-function createReservationsService({ reservationsRepository, runInTransaction, now = () => new Date() }) {
+function createReservationsService({ reservationsRepository, runInTransaction, eventBus, now = () => new Date() }) {
   function assertValidTimeRange(start, end) {
     if (end <= start) {
       throw new ValidationError('endTime must be later than startTime', undefined, 'INVALID_TIME_RANGE');
@@ -65,7 +65,7 @@ function createReservationsService({ reservationsRepository, runInTransaction, n
 
       assertValidTimeRange(start, end);
 
-      return runInTransaction(async ({ roomsRepository, reservationsRepository }) => {
+      const reservation = await runInTransaction(async ({ roomsRepository, reservationsRepository }) => {
         // Blokada wiersza sali szereguje równoległe rezerwacje tej samej sali do końca transakcji
         const room = await roomsRepository.findByIdForUpdate(roomId);
         if (!room) throw new NotFoundError(`Room ${roomId} not found`, 'ROOM_NOT_FOUND');
@@ -99,6 +99,17 @@ function createReservationsService({ reservationsRepository, runInTransaction, n
           internalNote: 'created via API v2',
         });
       });
+
+      // Event dopiero po zatwierdzeniu transakcji
+      eventBus.publish('reservation.created', {
+        reservationId: reservation.id,
+        roomId: reservation.roomId,
+        userId: reservation.userId,
+        startTime: reservation.startTime,
+        endTime: reservation.endTime,
+      });
+
+      return reservation;
     },
 
     async cancelReservation(id, currentUser) {
@@ -119,7 +130,16 @@ function createReservationsService({ reservationsRepository, runInTransaction, n
         throw new ConflictError('Reservation has already started and cannot be cancelled', 'RESERVATION_ALREADY_STARTED');
       }
 
-      return reservationsRepository.update(id, { status: target, cancelledAt: currentTime });
+      const cancelled = await reservationsRepository.update(id, { status: target, cancelledAt: currentTime });
+
+      eventBus.publish('reservation.cancelled', {
+        reservationId: cancelled.id,
+        roomId: cancelled.roomId,
+        userId: cancelled.userId,
+        cancelledBy: currentUser.id,
+      });
+
+      return cancelled;
     },
   };
 }

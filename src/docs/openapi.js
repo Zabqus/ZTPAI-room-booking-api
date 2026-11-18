@@ -31,7 +31,7 @@ const openapiSpec = {
   },
   servers: [{ url: '/api' }],
   security: [{ bearerAuth: [] }],
-  tags: [{ name: 'Auth' }, { name: 'Buildings' }, { name: 'Rooms' }, { name: 'Reservations' }],
+  tags: [{ name: 'Auth' }, { name: 'Buildings' }, { name: 'Rooms' }, { name: 'Reservations' }, { name: 'Admin' }],
   paths: {
     '/auth/register': {
       post: {
@@ -223,6 +223,27 @@ const openapiSpec = {
         },
       },
     },
+    '/admin/audit-log': {
+      get: {
+        tags: ['Admin'],
+        summary: 'Audit log eventów, od najnowszych (tylko ADMIN)',
+        parameters: [
+          {
+            name: 'eventType',
+            in: 'query',
+            schema: { type: 'string', enum: ['reservation.created', 'reservation.cancelled'] },
+          },
+          { name: 'page', in: 'query', schema: { type: 'integer', minimum: 1, default: 1 } },
+          { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 } },
+        ],
+        responses: {
+          200: jsonResponse('Strona audit logu', ref('AuditLogList')),
+          400: r400,
+          401: r401,
+          403: r403,
+        },
+      },
+    },
   },
   components: {
     securitySchemes: {
@@ -377,6 +398,30 @@ const openapiSpec = {
         type: 'object',
         properties: {
           data: listOf('Reservation'),
+          meta: {
+            type: 'object',
+            properties: {
+              page: { type: 'integer' },
+              limit: { type: 'integer' },
+              total: { type: 'integer' },
+              totalPages: { type: 'integer' },
+            },
+          },
+        },
+      },
+      AuditLogEntry: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          eventType: { type: 'string', example: 'reservation.created' },
+          payload: { type: 'object' },
+          createdAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      AuditLogList: {
+        type: 'object',
+        properties: {
+          data: listOf('AuditLogEntry'),
           meta: {
             type: 'object',
             properties: {

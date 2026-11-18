@@ -16,6 +16,9 @@ const { createReservationsRouter } = require('./modules/reservations/reservation
 const { createAuthService } = require('./modules/auth/auth.service');
 const { createAuthController } = require('./modules/auth/auth.controller');
 const { createAuthRouter } = require('./modules/auth/auth.routes');
+const { createAuditService } = require('./modules/audit/audit.service');
+const { createAuditController } = require('./modules/audit/audit.controller');
+const { createAuditRouter } = require('./modules/audit/audit.routes');
 
 
 function createApp({
@@ -23,7 +26,9 @@ function createApp({
   roomsRepository,
   reservationsRepository,
   usersRepository,
+  auditRepository,
   runInTransaction,
+  eventBus,
   jwtSecret,
   jwtExpiresIn,
   now = () => new Date(),
@@ -32,7 +37,8 @@ function createApp({
   const authenticate = createAuthenticate({ jwtSecret });
   const buildingsService = createBuildingsService({ buildingsRepository, roomsRepository });
   const roomsService = createRoomsService({ roomsRepository, buildingsRepository });
-  const reservationsService = createReservationsService({ reservationsRepository, runInTransaction, now });
+  const reservationsService = createReservationsService({ reservationsRepository, runInTransaction, eventBus, now });
+  const auditService = createAuditService({ auditRepository });
 
   const app = express();
 
@@ -52,6 +58,8 @@ function createApp({
     authenticate,
     createReservationsRouter({ reservationsController: createReservationsController({ reservationsService }) }),
   );
+
+  app.use('/api/admin', authenticate, createAuditRouter({ auditController: createAuditController({ auditService }) }));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

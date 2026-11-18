@@ -5,6 +5,7 @@ const config = require('../../src/config');
 const knexConfig = require('../../knexfile');
 const { createApp } = require('../../src/app');
 const { createRepositories } = require('../../src/repositories');
+const { createEventBus } = require('../../src/events/eventBus');
 
 const NOW = new Date('2026-12-01T08:00:00Z');
 const PASSWORD = 'integration-password';
@@ -14,6 +15,7 @@ const db = knex(knexConfig);
 const app = createApp({
   ...createRepositories(db),
   runInTransaction: (callback) => db.transaction((trx) => callback(createRepositories(trx))),
+  eventBus: createEventBus(),
   jwtSecret: config.JWT_SECRET,
   jwtExpiresIn: config.JWT_EXPIRES_IN,
   now: () => NOW,
@@ -45,7 +47,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  await db.raw('TRUNCATE TABLE reservations, rooms, buildings, users RESTART IDENTITY CASCADE');
+  await db.raw('TRUNCATE TABLE audit_log, reservations, rooms, buildings, users RESTART IDENTITY CASCADE');
   const [building] = await db('buildings').insert({ name: 'Budynek A', address: 'ul. Testowa 1' }).returning('id');
   const [room] = await db('rooms').insert({ building_id: building.id, name: '101', capacity: 10 }).returning('id');
   roomId = room.id;

@@ -3,12 +3,18 @@ const knex = require('knex');
 const knexConfig = require('../knexfile');
 const { createApp } = require('./app');
 const { createRepositories } = require('./repositories');
+const { createEventBus } = require('./events/eventBus');
+const { registerListeners } = require('./events/listeners');
 
 const db = knex(knexConfig);
+const repositories = createRepositories(db);
+const eventBus = createEventBus();
+registerListeners({ eventBus, ...repositories });
 
 const app = createApp({
-  ...createRepositories(db),
+  ...repositories,
   runInTransaction: (callback) => db.transaction((trx) => callback(createRepositories(trx))),
+  eventBus,
   jwtSecret: config.JWT_SECRET,
   jwtExpiresIn: config.JWT_EXPIRES_IN,
 });

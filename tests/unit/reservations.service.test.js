@@ -24,9 +24,9 @@ function existingReservation(overrides = {}) {
   };
 }
 
-function setup(reservations = [], now = () => NOW) {
+function setup(reservations = [], { now = () => NOW, eventBus = { publish: jest.fn() } } = {}) {
   const repositories = createInMemoryRepositories({ rooms: [ROOM, OTHER_ROOM], reservations });
-  return createReservationsService({ ...repositories, now });
+  return createReservationsService({ ...repositories, eventBus, now });
 }
 
 function newReservation(startTime, endTime, overrides = {}) {
@@ -130,7 +130,7 @@ describe('cancelReservation', () => {
 
   test('podwójne anulowanie jest idempotentne (cancelledAt bez zmian)', async () => {
     let currentTime = NOW;
-    const service = setup([existingReservation()], () => currentTime);
+    const service = setup([existingReservation()], { now: () => currentTime });
 
     const first = await service.cancelReservation(1, USER);
     currentTime = new Date(at('09:00'));
@@ -157,5 +157,49 @@ describe('cancelReservation - ownership', () => {
 
     expect(reservation.status).toBe('CANCELLED');
     expect(reservation.cancelledAt).toEqual(NOW);
+  });
+});
+
+describe('eventy', () => {
+  test('publikuje reservation.created po utworzeniu rezerwacji', async () => {
+    const eventBus = { publish: jest.fn() };
+    const service = setup([], { eventBus });
+
+    const reservation = await service.createReservation(newReservation('10:00', '11:00'), USER);
+
+    expect(eventBus.publish).toHaveBeenCalledTimes(1);
+    expect(eventBus.publish).toHaveBeenCalledWith('reservation.created', {
+      reservationId: reservation.id,
+      roomId: ROOM.id,
+      userId: USER.id,
+      startTime: new Date(at('10:00')),
+      endTime: new Date(at('11:00')),
+    });
+  });
+
+  test('nie publikuje eventu, gdy rezerwacja koliduje', async () => {
+    const eventBus = { publish: jest.fn() };
+    const service = setup([existingReservation()], { eventBus });
+
+    await expect(service.createReservation(newReservation('11:00', '13:00'), USER))
+      .rejects.toMatchObject({ code: 'ROOM_ALREADY_BOOKED' });
+
+    expect(eventBus.publish).not.toHaveBeenCalled();
+  });
+
+  test('publikuje reservation.cancelled tylko przy pierwszym anulowaniu', async () => {
+    const eventBus = { publish: jest.fn() };
+    const service = setup([existingReservation()], { eventBus });
+
+    await service.cancelReservation(1, ADMIN);
+    await service.cancelReservation(1, ADMIN);
+
+    expect(eventBus.publish).toHaveBeenCalledTimes(1);
+    expect(eventBus.publish).toHaveBeenCalledWith('reservation.cancelled', {
+      reservationId: 1,
+      roomId: ROOM.id,
+      userId: USER.id,
+      cancelledBy: ADMIN.id,
+    });
   });
 });
