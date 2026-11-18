@@ -13,4 +13,17 @@ const app = createApp({
   jwtExpiresIn: config.JWT_EXPIRES_IN,
 });
 
-app.listen(config.PORT, () => console.log(`Server running on port ${config.PORT}`));
+const server = app.listen(config.PORT, () => console.log(`Server running on port ${config.PORT}`));
+
+function shutdown(signal) {
+  console.log(`${signal} received, shutting down`);
+  server.close(async () => {
+    console.log('HTTP server closed');
+    await db.destroy();
+    console.log('Database pool closed');
+    process.exit(0);
+  });
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
