@@ -7,7 +7,7 @@ exports.up = async function (knex) {
   });
 
   // Każda osoba z reserved_by dostaje własne konto USER z losowym hasłem (bez możliwości logowania);
-  // jeśli reserved_by to email istniejącego konta (np. po rollbacku), rezerwacja trafia do tego konta
+  // jeśli reserved_by to email istniejącego konta, rezerwacja trafia do tego konta
   const owners = await knex('reservations').distinct('reserved_by').orderBy('reserved_by');
   let legacyCount = 0;
   for (const { reserved_by } of owners) {
