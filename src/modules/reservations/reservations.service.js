@@ -19,7 +19,7 @@ function canTransition(from, to) {
 }
 
 function overlaps(a, b) {
-  return a.start < b.end && b.start < a.end;
+  return a.start <= b.end && b.start <= a.end;
 }
 
 // Logika rezerwacji - repositories i zegar wstrzykiwane jako parametry
