@@ -1,5 +1,7 @@
 # Room Booking API
 
+[![CI](https://github.com/Zabqus/ZTPAI-room-booking-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Zabqus/ZTPAI-room-booking-api/actions/workflows/ci.yml)
+
 REST API do rezerwacji sal (Node.js, Express, PostgreSQL, Knex).
 
 ## Uruchomienie od zera (Docker Compose)
@@ -44,3 +46,8 @@ npm run test:unit
 npm run test:integration
 npm test
 ```
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) przy każdym pushu do `main` i każdym pull requeście uruchamia
+`npm ci`, `npm test` (z PostgreSQL jako service) oraz `docker build .`.
